@@ -38,17 +38,6 @@ function makeGrid(size: number): (Color | null)[][] {
   return Array.from({ length: size }, () => Array(size).fill(null));
 }
 
-function setCell(grid: (Color | null)[][], row: number, col: number, color: Color): (Color | null)[][] {
-  grid[row][col] = color;
-  return grid;
-}
-
-function makeLine(size: number, row: number, cols: number[], color: Color): (Color | null)[][] {
-  const g = makeGrid(size);
-  cols.forEach(c => setCell(g, row, c, color));
-  return g;
-}
-
 export const DOT_LEVELS: DotLevel[] = [
   {
     id: 1,

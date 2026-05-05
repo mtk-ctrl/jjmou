@@ -61,7 +61,6 @@ export default function MusicApp({ onHome }: { onHome: () => void }) {
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const level: MusicLevel = MUSIC_LEVELS[levelIndex] ?? MUSIC_LEVELS[0];
-  const expanded = expandCommands(commands);
   const cmdCount = countExpanded(commands);
 
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };

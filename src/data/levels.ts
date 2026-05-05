@@ -7,11 +7,10 @@ function row(arr: CellType[]): CellType[] {
 const E: CellType = 'empty';
 const W: CellType = 'wall';
 const H: CellType = 'hole';
-const G: CellType = 'goal';
 const N: CellType = 'enemy';
 const R: CellType = 'water';
 
-export const LEVELS: Level[] = [
+const ALL_LEVELS: Level[] = [
   // ========== LEVEL 1: 公園 6x6 基本移動 ==========
   {
     id: 1, levelNum: 1, questionNum: 1, theme: 'park', gridSize: 6,
@@ -1762,3 +1761,5 @@ export const LEVELS: Level[] = [
     hint: 'ぜんもん100もんめ！きみはほんとうのコードにんじゃだ！',
   },
 ];
+
+export const LEVELS = ALL_LEVELS.filter(l => l.questionNum <= 5);

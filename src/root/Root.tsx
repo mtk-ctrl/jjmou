@@ -12,7 +12,7 @@ const APPS = [
     emoji: '🐱',
     title: 'コードにゃんこ',
     desc: 'ネコをコマンドで動かしてゴールへ！',
-    sub: '全100問　ループ・ジャンプ・攻撃',
+    sub: '全50問　ループ・ジャンプ・攻撃',
     bg: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
     border: '#a29bfe',
     levels: 100,

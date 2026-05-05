@@ -194,7 +194,9 @@ export default function DotArtApp({ onHome }: { onHome: () => void }) {
   };
 
   const totalStars = Object.values(stars).reduce((a, b) => a + b, 0);
-  const cellSize = Math.min(Math.floor(280 / level.gridSize), 40);
+  const screenW = typeof window !== 'undefined' ? window.innerWidth : 390;
+  const maxGridW = Math.min(screenW * 0.9, 440) / 2 - 12;
+  const cellSize = Math.max(Math.floor(maxGridW / level.gridSize), 18);
 
   const renderCmd = (cmd: DotCmd, depth = 0): React.ReactNode => {
     if (cmd.type === 'move') return (
