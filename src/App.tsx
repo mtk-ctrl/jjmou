@@ -10,6 +10,7 @@ import WinScreen from './components/WinScreen';
 import FailScreen from './components/FailScreen';
 import LoopModal from './components/LoopModal';
 import LevelSelect from './components/LevelSelect';
+import UserSetup from './components/UserSetup';
 
 const THEME_BG: Record<Theme, string> = {
   park:  'linear-gradient(180deg, #87CEEB 0%, #a8d5a2 60%, #7bc67e 100%)',
@@ -29,26 +30,58 @@ function genId() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-const STORAGE_KEY = 'codenyanko_progress_v1';
+const USERS_KEY = 'codenyanko_users_v1';
+const CURRENT_USER_KEY = 'codenyanko_current_user_v1';
 
-function loadProgress() {
-  try {
-    const s = localStorage.getItem(STORAGE_KEY);
-    if (s) return JSON.parse(s) as { currentLevelIndex: number; stars: Record<number, number>; unlockedCount: number };
-  } catch { /* ignore */ }
-  return { currentLevelIndex: 0, stars: {} as Record<number, number>, unlockedCount: 1 };
+interface UserProgress {
+  currentLevelIndex: number;
+  stars: Record<number, number>;
+  unlockedCount: number;
 }
 
-function saveProgress(data: { currentLevelIndex: number; stars: Record<number, number>; unlockedCount: number }) {
+interface AllUsers {
+  [username: string]: UserProgress;
+}
+
+function loadAllUsers(): AllUsers {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const s = localStorage.getItem(USERS_KEY);
+    if (s) return JSON.parse(s) as AllUsers;
   } catch { /* ignore */ }
+  return {};
+}
+
+function saveAllUsers(users: AllUsers) {
+  try {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  } catch { /* ignore */ }
+}
+
+function loadCurrentUser(): string | null {
+  return localStorage.getItem(CURRENT_USER_KEY);
+}
+
+function saveCurrentUser(username: string) {
+  localStorage.setItem(CURRENT_USER_KEY, username);
+}
+
+function defaultProgress(): UserProgress {
+  return { currentLevelIndex: 0, stars: {}, unlockedCount: 1 };
 }
 
 export default function App() {
-  const [levelIndex, setLevelIndex] = useState(() => loadProgress().currentLevelIndex);
-  const [stars, setStars] = useState<Record<number, number>>(() => loadProgress().stars);
-  const [unlockedCount, setUnlockedCount] = useState(() => Math.max(loadProgress().unlockedCount, 1));
+  const [allUsers, setAllUsers] = useState<AllUsers>(() => loadAllUsers());
+  const [currentUser, setCurrentUser] = useState<string | null>(() => {
+    const saved = loadCurrentUser();
+    const users = loadAllUsers();
+    return saved && users[saved] ? saved : null;
+  });
+
+  const userProgress = currentUser ? (allUsers[currentUser] ?? defaultProgress()) : defaultProgress();
+
+  const [levelIndex, setLevelIndex] = useState(() => userProgress.currentLevelIndex);
+  const [stars, setStars] = useState<Record<number, number>>(() => userProgress.stars);
+  const [unlockedCount, setUnlockedCount] = useState(() => Math.max(userProgress.unlockedCount, 1));
 
   const [commands, setCommands] = useState<Command[]>([]);
   const [gameState, setGameState] = useState<GameState>('idle');
@@ -79,8 +112,34 @@ export default function App() {
   }, [levelIndex, level.start]);
 
   useEffect(() => {
-    saveProgress({ currentLevelIndex: levelIndex, stars, unlockedCount });
-  }, [levelIndex, stars, unlockedCount]);
+    if (!currentUser) return;
+    const updated: AllUsers = {
+      ...allUsers,
+      [currentUser]: { currentLevelIndex: levelIndex, stars, unlockedCount },
+    };
+    setAllUsers(updated);
+    saveAllUsers(updated);
+  }, [levelIndex, stars, unlockedCount, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleUserLogin = useCallback((username: string) => {
+    const users = loadAllUsers();
+    if (!users[username]) {
+      users[username] = defaultProgress();
+      saveAllUsers(users);
+      setAllUsers(users);
+    }
+    const prog = users[username] ?? defaultProgress();
+    setLevelIndex(prog.currentLevelIndex);
+    setStars(prog.stars);
+    setUnlockedCount(Math.max(prog.unlockedCount, 1));
+    setCurrentUser(username);
+    saveCurrentUser(username);
+  }, []);
+
+  const handleSwitchUser = useCallback(() => {
+    setCurrentUser(null);
+    localStorage.removeItem(CURRENT_USER_KEY);
+  }, []);
 
   const clearTimers = () => {
     animTimers.current.forEach(clearTimeout);
@@ -241,6 +300,16 @@ export default function App() {
   const isAtMax = expandedCount >= level.maxCommands;
   const themeStars = THEME_STARS[theme];
 
+  // ユーザー未選択ならセットアップ画面を表示
+  if (!currentUser) {
+    return (
+      <UserSetup
+        onComplete={handleUserLogin}
+        existingUsers={Object.keys(allUsers)}
+      />
+    );
+  }
+
   return (
     <div style={{
       minHeight: '100dvh',
@@ -289,23 +358,47 @@ export default function App() {
         justifyContent: 'space-between',
         gap: 8,
       }}>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowLevelSelect(true)}
-          style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: '2px solid rgba(255,255,255,0.3)',
-            borderRadius: 10,
-            padding: '6px 10px',
-            color: '#fff',
-            fontFamily: 'inherit',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
-        >
-          🗺️ レベル
-        </motion.button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowLevelSelect(true)}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              borderRadius: 10,
+              padding: '5px 10px',
+              color: '#fff',
+              fontFamily: 'inherit',
+              fontWeight: 700,
+              fontSize: 12,
+              cursor: 'pointer',
+            }}
+          >
+            🗺️ レベル
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={handleSwitchUser}
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              border: '1.5px solid rgba(255,255,255,0.2)',
+              borderRadius: 8,
+              padding: '3px 8px',
+              color: 'rgba(255,255,255,0.7)',
+              fontFamily: 'inherit',
+              fontWeight: 700,
+              fontSize: 10,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              maxWidth: 70,
+              textOverflow: 'ellipsis',
+            }}
+            title={currentUser}
+          >
+            {currentUser}
+          </motion.button>
+        </div>
 
         <div style={{ textAlign: 'center', flex: 1 }}>
           <div style={{
