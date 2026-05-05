@@ -69,7 +69,7 @@ function defaultProgress(): UserProgress {
   return { currentLevelIndex: 0, stars: {}, unlockedCount: 1 };
 }
 
-export default function App() {
+export default function App({ onHome }: { onHome?: () => void } = {}) {
   const [allUsers, setAllUsers] = useState<AllUsers>(() => loadAllUsers());
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     const saved = loadCurrentUser();
@@ -359,6 +359,25 @@ export default function App() {
         gap: 8,
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {onHome && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onHome}
+              style={{
+                background: 'rgba(255,255,255,0.12)',
+                border: '1.5px solid rgba(255,255,255,0.25)',
+                borderRadius: 10,
+                padding: '5px 10px',
+                color: '#fff',
+                fontFamily: 'inherit',
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              🏠 ホーム
+            </motion.button>
+          )}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowLevelSelect(true)}
