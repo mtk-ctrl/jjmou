@@ -1,5 +1,8 @@
 # 🐱 コードにゃんこ
 
+公開URL
+https://mtk-ctrl.github.io/jjmou/
+
 > 子供向けプログラミング入門ゲーム — ネコをコードで動かしてゴールへ導こう！
 
 ![コードにゃんこ](https://img.shields.io/badge/React-19-61dafb?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript) ![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite)
