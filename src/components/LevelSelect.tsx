@@ -22,6 +22,8 @@ const THEME_INFO: Record<number, { theme: Theme; emoji: string; name: string }> 
   10: { theme: 'robot', emoji: '🏆', name: 'さいしゅう決戦' },
 };
 
+const Q_PER_LEVEL = 5;
+
 export default function LevelSelect({ currentLevelIndex, stars, unlockedCount, onSelect, onClose }: LevelSelectProps) {
   return (
     <motion.div
@@ -52,13 +54,13 @@ export default function LevelSelect({ currentLevelIndex, stars, unlockedCount, o
       }}>
         {Array.from({ length: 10 }, (_, lv) => {
           const lvNum = lv + 1;
-          const startIndex = lv * 10;
+          const startIndex = lv * Q_PER_LEVEL;
           const info = THEME_INFO[lvNum];
-          const lvStars = Array.from({ length: 10 }, (_, q) => stars[startIndex + q] ?? 0);
+          const lvStars = Array.from({ length: Q_PER_LEVEL }, (_, q) => stars[startIndex + q] ?? 0);
           const totalStars = lvStars.reduce((a, b) => a + b, 0);
           const completed = lvStars.filter(s => s > 0).length;
           const isLocked = startIndex >= unlockedCount;
-          const isActive = currentLevelIndex >= startIndex && currentLevelIndex < startIndex + 10;
+          const isActive = currentLevelIndex >= startIndex && currentLevelIndex < startIndex + Q_PER_LEVEL;
 
           return (
             <motion.button
@@ -92,8 +94,7 @@ export default function LevelSelect({ currentLevelIndex, stars, unlockedCount, o
               <span style={{ fontSize: 11, opacity: 0.8 }}>{isLocked ? 'ロック中' : info.name}</span>
               {!isLocked && (
                 <div style={{ fontSize: 10, color: '#ffd700' }}>
-                  {'⭐'.repeat(Math.floor(totalStars / 3))}{'☆'.repeat(10 - Math.floor(totalStars / 3))}
-                  {' '}{completed}/10
+                  ⭐{totalStars}/{Q_PER_LEVEL * 3}　{completed}/{Q_PER_LEVEL}もん
                 </div>
               )}
             </motion.button>

@@ -1,0 +1,17 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/jjmou/(.*)", "destination": "/jjmou/index.html" },
+    { "source": "/jjmou", "destination": "/jjmou/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/jjmou/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ]
+}

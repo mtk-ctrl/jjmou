@@ -1,72 +1,68 @@
 # プログラミングランド 🎮
 
-子供向けプログラミング学習ゲームスイート（5アプリ）。最大4人の子供がどうぶつスロットで切り替えて遊べる。
+子供向けプログラミング学習ゲームスイート（5アプリ）。最大4人の子供が動物スロットで切り替えて遊べる。
 
 ## 起動コマンド
 ```bash
-npm run dev
+npm run dev    # port 5000, base /jjmou/
+npx tsc --noEmit  # 型チェック
+npm run build  # 本番ビルド → dist/
 ```
-- ポート: 5000  /  ベースパス: `/jjmou/`
-- GitHub push: `git push "https://${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/mtk-ctrl/jjmou.git" main`
 
 ## スタック
-- React 19 + TypeScript + Vite 6
-- Framer Motion（アニメーション）
-- canvas-confetti（花火エフェクト）
-- フォント: M PLUS Rounded 1c
+- React 19 + TypeScript + Vite 6 (base: `/jjmou/`)
+- Framer Motion, canvas-confetti, M PLUS Rounded 1c
+- Supabase（オプション、env設定時に有効）
 
 ## プロジェクト構成
 ```
 src/
-  main.tsx             - エントリ（basename=/jjmou/）
-  root/Root.tsx        - 4スロットユーザー管理 + ホーム + 統計画面
-  App.tsx              - コードにゃんこ（props: onHome, presetUser?）
-  apps/
-    music/
-      MusicApp.tsx     - おんがくプログラミング（props: onHome, currentUser）
-      levels.ts        - 50問（10レベル×5問）
-    dotart/
-      DotArtApp.tsx    - ドット絵プログラミング（props: onHome, currentUser）
-      levels.ts        - 50問
-    hiragana/
-      HiraganaApp.tsx  - ひらがなかきかた canvas tracing（props: onHome, currentUser）
-      characters.ts    - 50文字
-    shapes/
-      ShapesApp.tsx    - かたちパズル SVG択一（props: onHome, currentUser）
-      puzzles.ts       - 50問
-  data/levels.ts       - コードにゃんこ 全100問
-  utils/gameEngine.ts  - コマンドシミュレーション
-  components/          - GameGrid, CommandButton, CommandQueue, WinScreen, FailScreen, LoopModal, LevelSelect
+  main.tsx / root/Root.tsx    - 4スロットユーザー管理・ホーム
+  App.tsx                     - コードにゃんこ (50問)
+  lib/supabase.ts             - Supabase REST クライアント
+  apps/music/   dotart/   hiragana/   shapes/   - 各50問アプリ
+  data/levels.ts              - 100問定義（export時に50問フィルタ済み）
+  components/                 - GameGrid, LevelSelect, WinScreen 等
+docs/
+  ORG.md                      - 組織体制（オーナー/CEO/リン）
+  decisions/                  - ADR技術決定ログ
+  lin-reports/                - リンのUXレビュー報告
+supabase/schema.sql           - DB スキーマ（profiles, progress）
+vercel.json                   - Vercel SPA routing設定
+.github/workflows/ci.yml      - TypeCheck + Build CI
 ```
 
-## ユーザー管理（ver 3.0 4スロット式）
-- `pg_land_slots_v2` — 4つのスロット（name, animalIdx）
-- `pg_land_current_slot_v2` — 現在選択中のスロット番号
-- アニマル: 🐱ネコ / 🐶イヌ / 🐸カエル / 🐰ウサギ
-- 各スロット: 名前入力 + どうぶつ選択 + 星数表示
+## 組織体制（ver 3.0）
+- **オーナー** → CEOとのみ直接やり取り
+- **CEO/Rep** (Replitエージェント) → 実装・運営
+- **リン** (UXレビュアーAI) → 子供目線レビュー、docs/lin-reports/ に報告
+
+## ユーザー管理（4スロット式）
+- `pg_land_slots_v2` / `pg_land_current_slot_v2`
+- アニマル: 🐱🐶🐸🐰 / storageキーは replit.md旧版参照
 
 ## ゲーム仕様
-| アプリ | 問題数 | storageキー |
-|--------|--------|-------------|
-| コードにゃんこ | 100問 | `codenyanko_users_v1`（nested） |
-| おんがくプログラミング | 50問 | `musicprog_stars_${user}_v1` |
-| ドット絵プログラミング | 50問 | `dotart_stars_${user}_v1` |
-| ひらがなかきかた | 50問 | `hiragana_stars_${user}_v1` |
-| かたちパズル | 50問 | `shapes_stars_${user}_v1` |
+- 全アプリ: **10レベル × 5問 = 50問**（コードにゃんこも5問/レベル）
+- 評価 ★1〜3 / confetti win演出 / per-user localStorage保存
 
-- **評価**: ★1〜★3  /  **花火**: canvas-confetti（両サイド + バースト）
-- **合計最大**: 750星（コードにゃんこ除くと600）
+## インフラ連携
+| サービス | 状態 | 必要なこと |
+|---------|------|-----------|
+| GitHub CI | ✅ 設定済み | push時に自動実行 |
+| Vercel | 📋 設定ファイル作成済み | オーナーがvercel.comで接続 |
+| Supabase | 📋 スキーマ・クライアント作成済み | シークレット設定が必要 |
 
-## アーキテクチャ決定
-- `noUnusedLocals: true` のため未使用変数に注意
-- 全アプリは `currentUser: string` prop でユーザーを受け取る
-- ひらがなはcanvas pixel比較、かたちはSVG選択式
-- ベースパス `/jjmou/` は vite.config.ts の `base` で設定
+## Vercel連携手順（オーナー操作）
+1. vercel.com → "Add New Project" → `mtk-ctrl/jjmou` をimport
+2. Framework: Vite, Build: `npm run build`, Output: `dist`
 
-## User preferences
-- 子供向け：大きいボタン、カラフル、ひらがな優先
-- 最大4人のスロット、メール不要
+## Supabase連携手順（オーナー操作）
+1. supabase.com でプロジェクト作成
+2. SQL Editor で `supabase/schema.sql` を実行
+3. Replit環境変数に設定: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 
 ## Gotchas
-- music/levels.ts の空文字ヒント `''` は構文エラーになる → 必ずヒント文字列を入れる
-- git commit は background task で行う（main agentはブロックされる）
+- `noUnusedLocals: true` — 未使用変数でビルドエラー
+- music/levels.ts の空文字ヒント `''` は構文エラー → 必ず文字列を入れる
+- supabase.ts はenv未設定でもビルド可（isSupabaseEnabled=false でスキップ）
+- git commit/push は background Project Task で行う（main agentはブロックされる）
