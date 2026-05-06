@@ -69,9 +69,17 @@ function defaultProgress(): UserProgress {
   return { currentLevelIndex: 0, stars: {}, unlockedCount: 1 };
 }
 
-export default function App({ onHome }: { onHome?: () => void } = {}) {
+export default function App({ onHome, presetUser }: { onHome?: () => void; presetUser?: string } = {}) {
   const [allUsers, setAllUsers] = useState<AllUsers>(() => loadAllUsers());
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
+    if (presetUser) {
+      const users = loadAllUsers();
+      if (!users[presetUser]) {
+        users[presetUser] = defaultProgress();
+        saveAllUsers(users);
+      }
+      return presetUser;
+    }
     const saved = loadCurrentUser();
     const users = loadAllUsers();
     return saved && users[saved] ? saved : null;

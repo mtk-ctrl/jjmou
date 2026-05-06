@@ -1,51 +1,72 @@
-# コードにゃんこ 🐱
+# プログラミングランド 🎮
 
-子供向けプログラミング入門ゲーム。ネコのキャラクターをコマンドで動かしてゴールに導く。
-
-## 技術スタック
-- React 19 + TypeScript + Vite
-- Framer Motion（アニメーション）
-- canvas-confetti（花火エフェクト）
-- フォント: M PLUS Rounded 1c
-- ポート: 5000（webview）
-
-## プロジェクト構成
-```
-src/
-  App.tsx              - メインアプリ（ゲーム状態管理）
-  types.ts             - 型定義
-  index.css            - グローバルスタイル
-  data/
-    levels.ts          - 全100問のレベルデータ
-  utils/
-    gameEngine.ts      - コマンドシミュレーション・判定ロジック
-  components/
-    GameGrid.tsx       - グリッド描画（テーマ対応）
-    CommandButton.tsx  - コマンドボタン
-    CommandQueue.tsx   - コマンドキュー表示
-    WinScreen.tsx      - クリア画面（花火付き）
-    FailScreen.tsx     - 失敗画面
-    LoopModal.tsx      - ループ回数設定モーダル
-    LevelSelect.tsx    - レベル選択画面
-logs/
-  開発ログ.md          - 日本語による開発記録
-```
-
-## ゲーム仕様
-- **全100問**（レベル1〜10、各10問）
-- **コマンド**: 上・下・左・右・ジャンプ・攻撃・ループ
-- **操作**: タップで追加、タップでキャンセル
-- **テーマ**: 公園（Lv1-3）→ 宇宙（Lv4-5）→ 魔法（Lv6-7）→ ロボ（Lv8-10）
-- **評価**: ★1〜★3（コマンド効率）
-- **進捗**: localStorageに保存
-
-## GitHub連携について
-⚠️ ユーザーがGitHub OAuthインテグレーションを一時スキップ。
-再度接続したい場合は「GitHubと連携して」と伝えるか、
-Personal Access Token（PAT）を作成してシークレットに保存する方法もある。
-再接続時は connector:ccfg_github_01K4B9XD3VRVD2F99YM91YTCAF を使用すること。
+子供向けプログラミング学習ゲームスイート（5アプリ）。最大4人の子供がどうぶつスロットで切り替えて遊べる。
 
 ## 起動コマンド
 ```bash
 npm run dev
 ```
+- ポート: 5000  /  ベースパス: `/jjmou/`
+- GitHub push: `git push "https://${GITHUB_PERSONAL_ACCESS_TOKEN}@github.com/mtk-ctrl/jjmou.git" main`
+
+## スタック
+- React 19 + TypeScript + Vite 6
+- Framer Motion（アニメーション）
+- canvas-confetti（花火エフェクト）
+- フォント: M PLUS Rounded 1c
+
+## プロジェクト構成
+```
+src/
+  main.tsx             - エントリ（basename=/jjmou/）
+  root/Root.tsx        - 4スロットユーザー管理 + ホーム + 統計画面
+  App.tsx              - コードにゃんこ（props: onHome, presetUser?）
+  apps/
+    music/
+      MusicApp.tsx     - おんがくプログラミング（props: onHome, currentUser）
+      levels.ts        - 50問（10レベル×5問）
+    dotart/
+      DotArtApp.tsx    - ドット絵プログラミング（props: onHome, currentUser）
+      levels.ts        - 50問
+    hiragana/
+      HiraganaApp.tsx  - ひらがなかきかた canvas tracing（props: onHome, currentUser）
+      characters.ts    - 50文字
+    shapes/
+      ShapesApp.tsx    - かたちパズル SVG択一（props: onHome, currentUser）
+      puzzles.ts       - 50問
+  data/levels.ts       - コードにゃんこ 全100問
+  utils/gameEngine.ts  - コマンドシミュレーション
+  components/          - GameGrid, CommandButton, CommandQueue, WinScreen, FailScreen, LoopModal, LevelSelect
+```
+
+## ユーザー管理（ver 3.0 4スロット式）
+- `pg_land_slots_v2` — 4つのスロット（name, animalIdx）
+- `pg_land_current_slot_v2` — 現在選択中のスロット番号
+- アニマル: 🐱ネコ / 🐶イヌ / 🐸カエル / 🐰ウサギ
+- 各スロット: 名前入力 + どうぶつ選択 + 星数表示
+
+## ゲーム仕様
+| アプリ | 問題数 | storageキー |
+|--------|--------|-------------|
+| コードにゃんこ | 100問 | `codenyanko_users_v1`（nested） |
+| おんがくプログラミング | 50問 | `musicprog_stars_${user}_v1` |
+| ドット絵プログラミング | 50問 | `dotart_stars_${user}_v1` |
+| ひらがなかきかた | 50問 | `hiragana_stars_${user}_v1` |
+| かたちパズル | 50問 | `shapes_stars_${user}_v1` |
+
+- **評価**: ★1〜★3  /  **花火**: canvas-confetti（両サイド + バースト）
+- **合計最大**: 750星（コードにゃんこ除くと600）
+
+## アーキテクチャ決定
+- `noUnusedLocals: true` のため未使用変数に注意
+- 全アプリは `currentUser: string` prop でユーザーを受け取る
+- ひらがなはcanvas pixel比較、かたちはSVG選択式
+- ベースパス `/jjmou/` は vite.config.ts の `base` で設定
+
+## User preferences
+- 子供向け：大きいボタン、カラフル、ひらがな優先
+- 最大4人のスロット、メール不要
+
+## Gotchas
+- music/levels.ts の空文字ヒント `''` は構文エラーになる → 必ずヒント文字列を入れる
+- git commit は background task で行う（main agentはブロックされる）

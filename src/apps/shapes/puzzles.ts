@@ -87,7 +87,7 @@ export const SHAPE_PUZZLES: ShapePuzzle[] = [
   P(45,9,5,'たてかたまごか','かどがきっちりあるのは？','rectangle_v',['oval_v','rectangle_v','circle','oval_h'],1),
 
   // ── Level 10: マスター ─────────────────────────
-  P(46,10,1,'8かくけい？6かくけい？','かどのかずをよくかぞえて！','hexagon',['pentagon','hexagon','star','octagon' as ShapeType],1),
+  P(46,10,1,'8かくけい？6かくけい？','かどのかずをよくかぞえて！','hexagon',['pentagon','hexagon','star','crown'],1),
   P(47,10,2,'ふくざつなほし','6まいのほしか5まいか？','star',['hexagon','flower','star','pentagon'],2),
   P(48,10,3,'たてかさんかくか','どっちのほうがほそながい？','triangle',['rectangle_v','triangle','arrow','cross'],1),
   P(49,10,4,'かんむりかたてか','おうじさまがもつのは？','crown',['shield','crown','bell','star'],1),
